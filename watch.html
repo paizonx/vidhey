@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <title>HubXLink</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{--bg:#0f0f0f;--text:#fff;--accent:#ff0000;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Roboto,sans-serif;overflow-x:hidden}
+
+    .header{
+      position:sticky;top:0;z-index:100;height:60px;
+      background:rgba(15,15,15,.95);backdrop-filter:blur(10px);
+      border-bottom:1px solid #333;display:flex;align-items:center;
+      padding:0 16px;
+    }
+    .logo{font-weight:900;font-size:20px;display:flex;align-items:center;gap:6px}
+    .logo span{color:var(--accent)}
+    .wrap{max-width:860px;margin:0 auto;padding:14px 14px 40px}
+
+    .box{
+      position:relative;width:100%;
+      aspect-ratio:9/16;max-height:78vh;
+      background:#000;border-radius:16px;overflow:hidden;
+      box-shadow:0 10px 40px rgba(0,0,0,.6);
+      border:1px solid rgba(255,255,255,.10);
+    }
+
+    /* DM thumb image */
+    .thumb-img{
+      position:absolute;inset:0;width:100%;height:100%;
+      object-fit:cover;display:none;
+    }
+
+    /* Videy: show first frame only (no play) */
+    .thumb-vid{
+      position:absolute;inset:0;width:100%;height:100%;
+      object-fit:cover;display:none;
+    }
+
+    /* Play overlay */
+    .tap{
+      position:absolute;inset:0;z-index:5;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(0,0,0,.35);
+      cursor:pointer;
+    }
+    .play-icon{
+      width:70px;height:70px;border-radius:50%;
+      background:rgba(255,0,0,.9);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 0 20px rgba(255,0,0,.5);
+    }
+    .play-icon svg{width:35px;height:35px}
+
+    .warn{
+      margin-top:14px;
+      background:#2a1c00;border:1px solid #5a3b00;color:#ffd79a;
+      border-radius:14px;padding:12px;font-size:12px;font-weight:900;
+      display:none;
+    }
+    code{background:#1a1a1a;padding:2px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.10)}
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="logo"><span>▶</span> HubXLink</div>
+  </div>
+
+  <div class="wrap">
+    <div class="box">
+      <img id="dmThumb" class="thumb-img" alt="" />
+      <video id="vdThumb" class="thumb-vid" muted playsinline preload="metadata"></video>
+
+      <div class="tap" id="tap" aria-label="Open">
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24" fill="white" aria-hidden="true">
+            <path d="M8 5v14l11-7z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="warn" id="warnBox">
+      Invalid or missing ID. Example: <code>?id=3bdOAeE81</code>
+    </div>
+  </div>
+
+<script>
+  const id = (new URLSearchParams(location.search).get("id") || "").trim();
+  const ok = /^[a-zA-Z0-9_-]{3,80}$/.test(id);
+
+  const tap = document.getElementById("tap");
+  const warnBox = document.getElementById("warnBox");
+
+  const dmThumb = document.getElementById("dmThumb");
+  const vdThumb = document.getElementById("vdThumb");
+
+  // Sama seperti index.html Anda
+  const isDM = (id.length > 9 || id.startsWith("k"));
+
+  function goMoney(){
+    location.href = "/?id=" + encodeURIComponent(id);
+  }
+
+  if(!ok){
+    warnBox.style.display = "block";
+    tap.style.display = "none";
+  } else {
+    if(isDM){
+      dmThumb.src = "https://www.dailymotion.com/thumbnail/video/" + encodeURIComponent(id);
+      dmThumb.style.display = "block";
+      dmThumb.onerror = () => { dmThumb.style.display = "none"; };
+    } else {
+      // Frame awal saja, tidak play
+      vdThumb.src = "https://cdn.videy.co/" + encodeURIComponent(id) + ".mp4#t=0.1";
+      vdThumb.style.display = "block";
+      vdThumb.addEventListener("loadeddata", () => {
+        try { vdThumb.pause(); } catch(e){}
+      });
+      vdThumb.onerror = () => { vdThumb.style.display = "none"; };
+    }
+  }
+
+  // Klik overlay -> langsung ke web full cuan
+  tap.addEventListener("click", () => {
+    if(!ok) return;
+    goMoney();
+  });
+</script>
+</body>
+</html>
